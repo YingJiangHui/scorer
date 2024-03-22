@@ -3,6 +3,7 @@ import {NumberCountDisplay} from "@/app/scorer/components/NumberCountDisplay/Num
 import {useCounter} from "@/app/shared/hooks/useCounter";
 import {useTouchMove} from "@/app/shared/hooks/useGesture";
 import {Viewport} from "next";
+import {useState} from "react";
 
 export const viewport: Viewport = {
     themeColor: 'black',
@@ -14,8 +15,32 @@ export const viewport: Viewport = {
     viewportFit: "cover"
 }
 export default function ScorerPage() {
-    const leftCounter = useCounter({initialCount: 0, min: 0, max: 11})
-    const rightCounter = useCounter({initialCount: 0, min: 0, max: 11})
+    const [max, setMax] = useState(11)
+    const leftCounter = useCounter({
+        initialCount: 0, min: 0, max: max, onChange: (v) => {
+            if (v === 10 && rightCounter.count >= 10) {
+                setMax(12)
+            }
+        }, onReachMax: () => {
+            console.log("max")
+            setTimeout(()=>{
+                leftCounter.reset()
+                rightCounter.reset()
+                setMax(11)
+            })
+        }
+    })
+    const rightCounter = useCounter({
+        initialCount: 0, min: 0, max: max, onChange: (v) => {
+            if (v === 10 && leftCounter.count >= 10) {
+                setMax(12)
+            }
+        }, onReachMax: () => {
+            rightCounter.reset()
+            leftCounter.reset()
+            setMax(11)
+        }
+    })
     useTouchMove((e) => {
         const counterMap = {left: leftCounter, right: rightCounter}
         const counter = counterMap[e.side!]
